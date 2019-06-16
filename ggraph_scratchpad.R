@@ -1,5 +1,7 @@
+library(tidyverse)
 library(ggraph)
 library(igraph)
+library(viridis)
 
 # https://www.data-imaginist.com/2017/ggraph-introduction-layouts/
 # https://www.data-imaginist.com/2017/ggraph-introduction-edges/
@@ -13,7 +15,7 @@ attributes(graph)
 graph[1]
 graph[2]
 graph[3]
-
+length(graph)
 head(highschool)
 
 
@@ -28,42 +30,108 @@ graph2[3]
 
 #############################################################
 
+
+# create icicle plot from flare hierarchy data
 glimpse(flare)
 str(flare)
 
+# inspect edges
+str(flare$edges)
 glimpse(flare$edges)
-flare_edges <- flare$edges
-head(flare_edges)
+flare_edges <- flare$edges %>% as_tibble()
+flare_edges
 
+# add depth to edges just for inspection purposes
+flare_edges <- flare_edges %>% mutate(from_depth = str_count(string = from, pattern = regex("\\.")),
+                       to_depth = str_count(string = to, pattern = regex("\\."))) %>% arrange(from_depth)
+flare_edges
+flare_edges %>% arrange(desc(to_depth))
+
+# inspect vertices
+str(flare$vertices)
 glimpse(flare$vertices)
-flare_vertices <- flare$vertices
-head(flare_vertices)
+flare_vertices <- flare$vertices %>% as_tibble()
+flare_vertices
 flare_vertices %>% distinct(shortName)
 
-head(flare)
+# add depth to vertices just for inspection purposes
+flare_vertices <- flare_vertices %>% mutate(depth = str_count(string = name, pattern = regex("\\."))) %>% 
+        arrange(depth)
+flare_vertices
+flare_vertices %>% arrange(desc(depth))
+flare_vertices %>% count(shortName) %>% arrange(desc(n))
 
 
+##############################################
+
+
+# combine edges and vertices 
 graph <- graph_from_data_frame(flare_edges, vertices = flare_vertices)
 graph
+graph %>% glimpse()
 attributes(graph)
 
+
+#################################################
+
+
 # icicle plot
-ggraph(graph, 'partition') + 
+ggraph(graph, layout = "partition") + 
         geom_node_tile(aes(fill = depth), size = 0.25) + scale_fill_gradientn(colours = viridis(200, alpha = 1))
 
+ggraph(graph, layout = "partition") + 
+        geom_node_tile(aes(fill = shortName), show.legend = FALSE, size = 0.25) + 
+        scale_fill_manual(values = viridis(251, alpha = 1))
+ 
 ggraph(graph, 'partition') + 
-        geom_node_tile(aes(fill = shortName), show.legend = FALSE, size = 0.25) + scale_fill_manual(values = viridis(251, alpha = 1))
+        geom_node_tile(aes(fill = shortName), show.legend = FALSE, size = 0.25) + 
+        scale_fill_manual(values = viridis(251, alpha = 1)) +
+        theme(
+                # panel.grid.major = element_line(color = "transparent"),
+              # plot.background = element_blank(), 
+              # panel.grid.minor = element_blank(), panel.border = element_blank(),
+              # axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank(),
+              # axis.ticks.x = element_blank(), axis.text.x = element_blank(), axis.title.x = element_blank(),
+              # plot.title = element_text(size = 12, face = "bold", hjust = .5), legend.position = "right",
+              # legend.key.size = unit(2, "mm"), legend.title = element_text(size = 7),
+              # legend.text = element_text(size = 7),
+              # panel.grid = element_blank(),
+              line = element_blank(),
+              rect = element_blank(),
+              text = element_blank())
+
+
+#############################################################################
 
 
 # sunburst
 # ggraph(graph, 'partition', circular = TRUE) +
 #         geom_node_arc_bar(aes(fill = depth), size = 0.25) + geom_node_text(aes(label = shortName), repel = TRUE)
 
-ggraph(graph, 'partition', circular = TRUE) +
-        geom_node_arc_bar(aes(fill = depth), size = 0.25) + geom_node_text(aes(label = shortName)) + scale_fill_gradientn(colours = viridis(200, alpha = 1))
+ggraph(graph, layout = "partition", circular = TRUE) +
+        geom_node_arc_bar(aes(fill = depth), size = 0.25) + geom_node_text(aes(label = shortName)) + 
+        scale_fill_gradientn(colours = viridis(200, alpha = 1))
 
 ggraph(graph, 'partition', circular = TRUE) +
-        geom_node_arc_bar(aes(fill = shortName), size = 0.25, show.legend = FALSE) + scale_fill_manual(values = viridis(251, alpha = 1))
+        geom_node_arc_bar(aes(fill = shortName), size = 0.25, show.legend = FALSE) + 
+        scale_fill_manual(values = viridis(251, alpha = 1))
+
+ggraph(graph, 'partition', circular = TRUE) +
+        geom_node_arc_bar(aes(fill = shortName), size = 0.25, show.legend = FALSE) + 
+        scale_fill_manual(values = viridis(251, alpha = 1)) + 
+        theme(
+                # panel.grid.major = element_line(color = "transparent"),
+                # plot.background = element_blank(), 
+                # panel.grid.minor = element_blank(), panel.border = element_blank(),
+                # axis.ticks.y = element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank(),
+                # axis.ticks.x = element_blank(), axis.text.x = element_blank(), axis.title.x = element_blank(),
+                # plot.title = element_text(size = 12, face = "bold", hjust = .5), legend.position = "right",
+                # legend.key.size = unit(2, "mm"), legend.title = element_text(size = 7),
+                # legend.text = element_text(size = 7),
+                # panel.grid = element_blank(),
+                line = element_blank(),
+                rect = element_blank(),
+                text = element_blank())
 
 
 #################################################################
