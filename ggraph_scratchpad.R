@@ -8,6 +8,9 @@ library(viridis)
 # https://www.data-imaginist.com/2017/ggraph-introduction-nodes/
 
 
+# setwd
+setwd("C:/Users/Stephen/Desktop/R/ggraph")
+
 graph <- graph_from_data_frame(highschool)
 glimpse(graph)
 graph
@@ -116,7 +119,7 @@ ggraph(graph, 'partition', circular = TRUE) +
         geom_node_arc_bar(aes(fill = shortName), size = 0.25, show.legend = FALSE) + 
         scale_fill_manual(values = viridis(251, alpha = 1))
 
-ggraph(graph, 'partition', circular = TRUE) +
+plot <- ggraph(graph, 'partition', circular = TRUE) +
         geom_node_arc_bar(aes(fill = shortName), size = 0.25, show.legend = FALSE) + 
         scale_fill_manual(values = viridis(251, alpha = 1)) + 
         theme(
@@ -132,6 +135,9 @@ ggraph(graph, 'partition', circular = TRUE) +
                 line = element_blank(),
                 rect = element_blank(),
                 text = element_blank())
+plot
+
+# save
 
 
 #################################################################
